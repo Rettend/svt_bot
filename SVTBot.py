@@ -1,9 +1,7 @@
 import discord, logging, json, asyncio, time, random, aiohttp, re, datetime, traceback, os, sys, math, asyncpg
 from time import gmtime
 from discord.ext import commands
-from functions import edit_json, read_json
 #-------------------DATA---------------------
-
 version = "0.9.0"
 owner = ["361534796830081024"]
 bot = commands.Bot(command_prefix='r-', description=None)
@@ -18,7 +16,6 @@ permissions = discord.Permissions
 PRserver = "PissRocket"
 underworking = ":warning: **Meh Boi, this command hasn't finished. Please wait until it's got.** :warning:"
 """timer = time.strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())"""
-#--------------------------------------------
 
 #-----------------SETUP----------------------
 @bot.event
@@ -27,38 +24,13 @@ async def on_ready():
     print(bot.user.name)
     print(bot.user.id)
     print('------')
-    await bot.change_presence(game=discord.Game(name='Restarted 🤘'))
+    await bot.change_presence(game=discord.Game(name="Snipers vs Thieves!"))
 
 class NoPermError(Exception):
     pass
 
-
-"""@bot.command()
-async def load(extension_name : str):
-    try:
-        bot.load_extension(extension_name)
-    except (AttributeError, ImportError) as e:
-        await bot.say("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
-        return
-    await bot.say("{} loaded.".format(extension_name))
-
-@bot.command()
-async def unload(extension_name : str):
-    bot.unload_extension(extension_name)
-    await bot.say("{} unloaded.".format(extension_name))
-
-if __name__ == "__main__":
-    for extension in startup_extensions:
-        try:
-            bot.load_extension(extension)
-        except Exception as e:
-            exc = '{}: {}'.format(type(e).__name__, e)
-            print('Failed to load extension {}\n{}'.format(extension, exc))"""
-
-#--------------------------------------------
-
 #----------------COMMANDS--------------------
-@bot.command(pass_context=True)
+"""@bot.command(pass_context=True)
 async def selfrole(ctx, role : discord.Role=None):
     dj_role = discord.utils.get(ctx.message.server.roles, id="403594320634052610")
     radish_role = discord.utils.get(ctx.message.server.roles, id="380764242757943326")
@@ -97,7 +69,7 @@ async def selfrole(ctx, role : discord.Role=None):
             e.set_author(name=ctx.message.author, icon_url=ctx.message.author.avatar_url)
             timer = time.strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
             e.set_footer(text=timer)
-    await bot.say(embed=e)
+    await bot.say(embed=e)"""
 
 @bot.command(pass_context=True)
 async def fight(ctx, member : discord.Member=None):
@@ -121,8 +93,6 @@ async def fight(ctx, member : discord.Member=None):
             await bot.say("**Congratulation! You won the game!**")
         except TimeoutError:
             await bot.say("**Time is over!**")
-            
-        
 
 @bot.command(pass_context=True)
 async def typing(ctx):
@@ -569,7 +539,9 @@ async def poll(ctx, options: str=None, *, question=None):
             await bot.add_reaction(react_message, reaction)
         await bot.edit_message(react_message, embed=embed)
 
-@bot.listen()
+
+#For Server Stats
+"""@bot.listen()
 async def on_member_join(member):
     botserver = bot.get_server(id="370269066864361472")
     membersroom = bot.get_channel(id="460397271788421120")
@@ -616,80 +588,15 @@ async def say(ctx, *, words=None):
     if words is None:
         await bot.reply("**The usage is `r-say {Something}` ty.**")
     else:
-        await bot.say(f"**{words}**")
+        await bot.say(f"**{words}**")"""
+
 #-----------------------------------------------
-
-reaction_roles=read_json('reaction_roles')
-active_messages=[]
-
-@bot.command(pass_context=True)
-async def add_er(ctx, emoji : str=None, role : discord.Role=None):
-    if ctx.message.author.id not in owner:
-        await bot.say('**I only let my owner use this command...**')
-    else:
-        if (emoji or role) is None:
-            await bot.say('**Missing arguments `Emoji` or `@Role`**')
-            return
-        bot_member=discord.utils.get(ctx.message.server.members, id=bot.user.id)
-        if role.position >= bot_member.top_role.position:
-            await bot.say("**Can't assign that role, bot role needs to be raised.**")
-            return
-        reaction_roles[emoji] = role.id
-        edit_json('reaction_roles', reaction_roles)
-        await bot.say('**{} will assign members to {}**'.format(emoji, role.mention))
-
-@bot.command(pass_context=True)
-async def remove_er(ctx, emoji):
-    if ctx.message.author.id not in owner:
-        await bot.say('**I only let my owner use this command...**')
-    else:
-        role = discord.utils.get(ctx.message.server.roles, id=reaction_roles[emoji])
-        await bot.say('**{} will no longer assign {}**'.format(emoji, role.mention))
-        del reaction_roles[emoji]
-        edit_json('reaction_roles', reaction_roles)
-
-@bot.command(pass_context=True)
-async def er(ctx):
-    if ctx.message.author.id not in owner:
-        await bot.say('**I only let my owner use this command...**')
-    else:
-        if len(reaction_roles) == 0:
-            await bot.say("**No emojis have been assigned to roles**")
-            return
-        global active_messages
-        server = ctx.message.server
-        message = ''
-        for emoji, role in reaction_roles.items():
-            role = discord.utils.get(server.roles, id=role)
-            message += '{} will assign {}\n'.format(emoji, role.mention)
-        msg = await bot.say(f"**__Click on the Reactions to get Roles!__\n{message}**")
-        for emoji in reaction_roles.keys():
-            await bot.add_reaction(msg, emoji)
-        active_messages.append(msg.id)
-
-@bot.event
-async def on_reaction_add(reaction, user):
-    if reaction.message.id in active_messages and reaction.emoji in reaction_roles and user != bot.user:
-        role = discord.utils.get(reaction.message.server.roles, id=reaction_roles[reaction.emoji])
-        for r_id in reaction_roles.values():
-            e_role = discord.utils.get(reaction.message.server.roles, id=r_id)
-        await bot.add_roles(user, role)
-
-@bot.event
-async def on_reaction_remove(reaction, user):
-    if reaction.message.id in active_messages and reaction.emoji in reaction_roles and user != bot.user:
-        role = discord.utils.get(reaction.message.server.roles, id=reaction_roles[reaction.emoji])
-        for r_id in reaction_roles.values():
-            e_role = discord.utils.get(reaction.message.server.roles, id=r_id)
-        await bot.remove_roles(user, role)
-#-----------------------------------------------
-
 @bot.event
 async def on_message(message):
-    if message.content.startswith("r-time"):
+    if message.content.startswith("-time"):
         timer = time.strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
         await bot.send_message(message.channel, f"**{message.author.mention}, the time is __{timer}__**")
-    if message.content.startswith("r-mod"):
+    if message.content.startswith("-mod"):
         em = discord.Embed(title="MODERATION COMMANDS", description=None, colour=0x3498db)
         em.add_field(name="Admin commands", value=":small_blue_diamond: r-ban {member} {0 - 7 amount of days to delete his messages} {Reason}\n"
                      ":black_small_square: Kicks the user and removes his messages for the given days, the user can't rejoin, until he gots unbanned\n"
@@ -714,7 +621,7 @@ async def on_message(message):
                      ":small_orange_diamond: r-clear {number of messages to delete}\n"
                      ":black_small_square: Deletes a specific amount of messages")
         await bot.send_message(message.channel, embed=em)
-    if message.content.startswith("r-help"):
+    if message.content.startswith("-help"):
         Rettend = discord.utils.get(message.server.members, id="361534796830081024")
         em = discord.Embed(title="HELP", description="__Hey! Dont get Scared, Ask for help!__\n"
                            "\n"
@@ -724,106 +631,7 @@ async def on_message(message):
                            f":white_small_square: If you have any questions, ask it to {Rettend.mention}", colour=0x3498db)
         em.set_thumbnail(url="https://cdn.discordapp.com/emojis/430347128100093962.gif?v=1")
         await bot.send_message(message.channel, embed=em)
-    if message.content.upper().startswith('R-AMIOWNER?'):
-        if message.author.id in owner:
-            await bot.send_message(message.channel, ':white_check_mark: **You are the Owner, Hey Rettend :D**')
-        else:
-            await bot.send_message(message.channel, ':negative_squared_cross_mark: **You aren\'t the Owner.**')
-    if message.content.startswith('r-bigdigits'):
-        await bot.send_message(message.channel, ':globe_with_meridians: **DIGITS:\n'
-                               '-Zero, One, Two, Three, Four, Five, Six, Seven, Eight, Nine\n'
-                               'Type `r-digits {0-9}` for the digits**')
-    if message.content.startswith('r-digits 0'):
-        await bot.send_message(message.channel, ':radio_button: **Zero:**')
-        await bot.send_message(message.channel, ":black_circle::large_blue_circle::large_blue_circle::large_blue_circle::black_circle:\n" 
-                                    ":large_blue_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                                    ":large_blue_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                                    ":large_blue_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                                    ":large_blue_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                                    ":large_blue_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                                    ":black_circle::large_blue_circle::large_blue_circle::large_blue_circle::black_circle:")
-    if message.content.startswith('r-digits 1'):
-        await bot.send_message(message.channel, ':radio_button: **One:**')
-        await bot.send_message(message.channel, ":black_circle::black_circle::large_blue_circle::black_circle::black_circle:\n"
-                                ":black_circle::large_blue_circle::large_blue_circle::black_circle::black_circle:\n"
-                                ":black_circle::black_circle::large_blue_circle::black_circle::black_circle:\n"
-                                ":black_circle::black_circle::large_blue_circle::black_circle::black_circle:\n"
-                                ":black_circle::black_circle::large_blue_circle::black_circle::black_circle:\n"
-                                ":black_circle::black_circle::large_blue_circle::black_circle::black_circle:\n"
-                                ":black_circle::large_blue_circle::large_blue_circle::large_blue_circle::black_circle:\n")
-    if message.content.startswith('r-digits 2'):
-        await bot.send_message(message.channel, ':radio_button: **Two:**')
-        await bot.send_message(message.channel, ":black_circle::large_blue_circle::large_blue_circle::large_blue_circle::black_circle:\n"
-                               ":large_blue_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                               ":black_circle::black_circle::black_circle::large_blue_circle::black_circle:\n"
-                               ":black_circle::black_circle::large_blue_circle::black_circle::black_circle:\n"
-                               ":black_circle::large_blue_circle::black_circle::black_circle::black_circle:\n"
-                               ":large_blue_circle::black_circle::black_circle::black_circle::black_circle:\n"
-                               ":large_blue_circle::large_blue_circle::large_blue_circle::large_blue_circle::large_blue_circle:")
-    if message.content.startswith('r-digits 3'):
-        await bot.send_message(message.channel, ':radio_button: **Three:**')
-        await bot.send_message(message.channel, ":black_circle::large_blue_circle::large_blue_circle::large_blue_circle::black_circle:\n"
-                               ":large_blue_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                               ":black_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                               ":black_circle::black_circle::large_blue_circle::large_blue_circle::large_blue_circle:\n"
-                               ":black_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                               ":large_blue_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                               ":black_circle::large_blue_circle::large_blue_circle::large_blue_circle::black_circle:")
-    if message.content.startswith('r-digits 4'):
-        await bot.send_message(message.channel, ':radio_button: **Four:**')
-        await bot.send_message(message.channel, ":black_circle::black_circle::black_circle::large_blue_circle::black_circle:\n"
-                               ":black_circle::black_circle::large_blue_circle::large_blue_circle::black_circle:\n"
-                               ":black_circle::large_blue_circle::black_circle::large_blue_circle::black_circle:\n"
-                               ":large_blue_circle::black_circle::black_circle::large_blue_circle::black_circle:\n"
-                               ":large_blue_circle::black_circle::black_circle::large_blue_circle::black_circle:\n"
-                               ":large_blue_circle::large_blue_circle::large_blue_circle::large_blue_circle::large_blue_circle:\n"
-                               ":black_circle::black_circle::black_circle::large_blue_circle::black_circle:")
-    if message.content.startswith('r-digits 5'):
-        await bot.send_message(message.channel, ':radio_button: **Five:**')
-        await bot.send_message(message.channel, ":large_blue_circle::large_blue_circle::large_blue_circle::large_blue_circle::black_circle:\n"
-                               ":large_blue_circle::black_circle::black_circle::black_circle::black_circle:\n"
-                               ":large_blue_circle::black_circle::black_circle::black_circle::black_circle:\n"
-                               ":large_blue_circle::large_blue_circle::large_blue_circle::black_circle::black_circle:\n"
-                               ":black_circle::black_circle::black_circle::large_blue_circle::black_circle:\n" 
-                               ":black_circle::black_circle::black_circle::large_blue_circle::black_circle:\n"
-                               ":large_blue_circle::large_blue_circle::large_blue_circle::black_circle::black_circle:")
-    if message.content.startswith('r-digits 6'):
-        await bot.send_message(message.channel, ':radio_button: **Six:**')
-        await bot.send_message(message.channel, ":black_circle::large_blue_circle::large_blue_circle::large_blue_circle::black_circle:\n"
-                               ":large_blue_circle::black_circle::black_circle::black_circle::black_circle:\n"
-                               ":large_blue_circle::black_circle::black_circle::black_circle::black_circle:\n"
-                               ":large_blue_circle::large_blue_circle::large_blue_circle::large_blue_circle::black_circle:\n"
-                               ":large_blue_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                               ":large_blue_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                               ":black_circle::large_blue_circle::large_blue_circle::large_blue_circle::black_circle:")
-    if message.content.startswith('r-digits 7'):
-        await bot.send_message(message.channel, ':radio_button: **Seven:**')
-        await bot.send_message(message.channel, ":black_circle::black_circle::black_circle::black_circle::black_circle:\n"
-                               ":large_blue_circle::large_blue_circle::large_blue_circle::large_blue_circle::large_blue_circle:\n"
-                               ":black_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                               ":black_circle::black_circle::black_circle::large_blue_circle::black_circle:\n"
-                               ":black_circle::black_circle::large_blue_circle::black_circle::black_circle:\n"
-                               ":black_circle::large_blue_circle::black_circle::black_circle::black_circle:\n"
-                               ":black_circle::large_blue_circle::black_circle::black_circle::black_circle:")
-    if message.content.startswith('r-digits 8'):
-        await bot.send_message(message.channel, ':radio_button: **Eight:**')
-        await bot.send_message(message.channel, ":black_circle::large_blue_circle::large_blue_circle::large_blue_circle::black_circle:\n"
-                               ":large_blue_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                               ":large_blue_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                               ":black_circle::large_blue_circle::large_blue_circle::large_blue_circle::black_circle:\n"
-                               ":large_blue_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                               ":large_blue_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                               ":black_circle::large_blue_circle::large_blue_circle::large_blue_circle::black_circle:")
-    if message.content.startswith('r-digits 9'):
-        await bot.send_message(message.channel, ':radio_button: **Nine:**')
-        await bot.send_message(message.channel, ":black_circle::large_blue_circle::large_blue_circle::large_blue_circle::black_circle:\n"
-                               ":large_blue_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                               ":large_blue_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                               ":black_circle::large_blue_circle::large_blue_circle::large_blue_circle::large_blue_circle:\n"
-                               ":black_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                               ":black_circle::black_circle::black_circle::black_circle::large_blue_circle:\n"
-                               ":black_circle::large_blue_circle::large_blue_circle::large_blue_circle::black_circle:")
-    if message.content.startswith('r-8ball'):
+    if message.content.startswith('-8ball'):
         await bot.send_message(message.channel, random.choice(['**It is certain :8ball:**',
                                                               '**It is decidedly so :8ball:**',
                                                               '**Without a doubt :8ball:**',
@@ -849,13 +657,13 @@ async def on_message(message):
                                                               '**Ha! :8ball:**',
                                                               '**Ask it to ur mum :8ball:**',
                                                               ':feelsUltraREE: ***REEEE* :8ball:**',]))
-    if message.content.startswith('r-lenny'):
+    if message.content.startswith('-lenny'):
         ears = ['q{}p', 'ʢ{}ʡ', '⸮{}?', 'ʕ{}ʔ', 'ᖗ{}ᖘ', 'ᕦ{}ᕥ', 'ᕦ({})ᕥ', 'ᕙ({})ᕗ', 'ᘳ{}ᘰ', 'ᕮ{}ᕭ', 'ᕳ{}ᕲ', '({})', '[{}]', '୧{}୨', '୨{}୧', '⤜({})⤏', '☞{}☞', 'ᑫ{}ᑷ', 'ᑴ{}ᑷ', 'ヽ({})ﾉ', '乁({})ㄏ', '└[{}]┘', '(づ{})づ', '(ง{})ง', '|{}|']
         eyes = ['⌐■{}■', ' ͠°{} °', '⇀{}↼', '´• {} •`', '´{}`', '`{}´', 'ó{}ò', 'ò{}ó', '>{}<', 'Ƹ̵̡ {}Ʒ', 'ᗒ{}ᗕ', '⪧{}⪦', '⪦{}⪧', '⪩{}⪨', '⪨{}⪩', '⪰{}⪯', '⫑{}⫒', '⨴{}⨵', "⩿{}⪀", "⩾{}⩽", "⩺{}⩹", "⩹{}⩺", "◥▶{}◀◤", "≋{}≋", "૦ઁ{}૦ઁ", "  ͯ{}  ͯ", "  ̿{}  ̿", "  ͌{}  ͌", "ළ{}ළ", "◉{}◉", "☉{}☉", "・{}・", "▰{}▰", "ᵔ{}ᵔ", "□{}□", "☼{}☼", "*{}*", "⚆{}⚆", "⊜{}⊜", ">{}>", "❍{}❍", "￣{}￣", "─{}─", "✿{}✿", "•{}•", "T{}T", "^{}^", "ⱺ{}ⱺ", "@{}@", "ȍ{}ȍ", "x{}x", "-{}-", "${}$", "Ȍ{}Ȍ", "ʘ{}ʘ", "Ꝋ{}Ꝋ", "๏{}๏", "■{}■", "◕{}◕", "◔{}◔", "✧{}✧", "♥{}♥", " ͡°{} ͡°", "¬{}¬", " º {} º ", "⍜{}⍜", "⍤{}⍤", "ᴗ{}ᴗ", "ಠ{}ಠ", "σ{}σ"]
         mouth = ['v', 'ᴥ', 'ᗝ', 'Ѡ', 'ᗜ', 'Ꮂ', 'ヮ', '╭͜ʖ╮', ' ͟ل͜', ' ͜ʖ', ' ͟ʖ', ' ʖ̯', 'ω', '³', ' ε ', '﹏', 'ل͜', '╭╮', '‿‿', '▾', '‸', 'Д', '∀', '!', '人', '.', 'ロ', '_', '෴', 'ѽ', 'ഌ', '⏏', 'ツ', '益']
         lenny = random.choice(ears).format(random.choice(eyes)).format(random.choice(mouth))
         await bot.send_message(message.channel, "**A wild Lenny has appeard:**\n\n\t" + lenny)
-    if message.content.startswith('r-oof'):
+    if message.content.startswith('-oof'):
         o = ['o00', 'oo', 'oO', 'o0', 'Oo', '0o', 'OOo', 'O0o', 'ooO', 'oo0', 'oo0oO', 'o0o', '0ooO', 'oo0oOO', 'ooo', '0oo', 'oooo', 'Ooo0', 'O0oo', 'ooo0', ]
         f = ['f', 'ff', 'fff']
         mark = ['!', '!!', '!!', '!1', '!!1', '!1!!', '1!!!', '!1!1!', '1!', '!!1!', '!!!1!', '!!!!', '!11!']
@@ -863,7 +671,7 @@ async def on_message(message):
         msg2 = random.choice(f)
         msg3 = random.choice(mark)
         await bot.send_message(message.channel, msg1 + msg2 + msg3)
-    if message.content.startswith('r-leavepls'):
+    if message.content.startswith('-leavepls'):
         em5 = discord.Embed(title=":warning: WARNING :warning:", description="THE BOT WILL LEAVE THE SERVER IN:\n"
                             ":large_blue_circle::large_blue_circle::large_blue_circle::large_blue_circle::black_circle:\n"
                             ":large_blue_circle::black_circle::black_circle::black_circle::black_circle:\n"
@@ -927,13 +735,9 @@ async def on_message(message):
         em = discord.Embed(title="lol Joke", colour=0x3498db)
         em.set_thumbnail(url="https://cdn.discordapp.com/emojis/423864027610087426.png?v=1")
         await bot.edit_message(msg,  embed=em)
-    if message.content.startswith('r-invite'):
-        em = discord.Embed(title='MY LINKS:', description=':cyclone: PissRocket: https://discord.gg/Cf833k8\n'
-                           ':link: Website: https://hegyiaron101.wixsite.com/pissrocket', colour=0x3498db)
-        await bot.send_message(message.channel, embed=em)
-    if message.content.startswith('r-list'):
+    if message.content.startswith('-list'):
         await bot.send_message(message.channel, "**Usage: `r-list 1` and `r-list 2`\nAlso `r-latest` for the latest commands**")
-    if message.content.startswith('r-list 1'):
+    if message.content.startswith('-list 1'):
         emb = discord.Embed(title='MY COMMANDS:', description="Hey, check out my commands!", colour=0x3498db)
         emb.add_field(name='--------------------', value=':small_blue_diamond: r-typing\n'
                             ':white_small_square: r-whoami\n'
@@ -954,7 +758,7 @@ async def on_message(message):
         emb.set_thumbnail(url='https://cdn.discordapp.com/emojis/385152309090451467.png?v=1')
         emb.set_footer(text='The Official Bot of PissRocket, inviting and using the Bot in other servers breaks the Term of Use.\nType r-help 2 for more commands!!')
         await bot.send_message(message.channel, embed=emb)
-    if message.content.startswith('r-list 2'):
+    if message.content.startswith('-list 2'):
         emb = discord.Embed(title='MY COMMANDS:', description="Hey, check out my commands!", colour=0x3498db)
         emb.add_field(name='--------------------', value=':small_blue_diamond: r-time\n'
                             ':white_small_square: r-mod\n'
@@ -972,7 +776,7 @@ async def on_message(message):
         emb.set_thumbnail(url='https://cdn.discordapp.com/emojis/385152309090451467.png?v=1')
         emb.set_footer(text='The Official Bot of PissRocket, inviting and using the Bot in other servers breaks the Term of Use.\nType r-help for more commands!!')
         await bot.send_message(message.channel, embed=emb)
-    if message.content.startswith('r-latest'):
+    if message.content.startswith('-latest'):
         emb = discord.Embed(title="LATEST UPDATES", description=":high_brightness: The Currently version is __" + version + "__ :high_brightness:\n\n"
                             ":white_small_square: r-typing\n"
                             "Sends a weird typing\n"
@@ -984,22 +788,6 @@ async def on_message(message):
                             "The commands list finnaly working", colour=0x3498db)
         emb.set_thumbnail(url="https://cdn.discordapp.com/emojis/438035428386275340.png?v=1")
         await bot.send_message(message.channel, embed=emb)
-    if message.content.startswith('r-bot'):
-        em = discord.Embed(description= "```md\n"
-                                "<⊐______⊐______⊏THE-ROCKETER-BOT⊐______⊏______⊏>\n"
-                                "<                                                >\n"
-                                "<▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒>\n"
-                                "<                                                >\n"
-                                "<▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒>\n"
-                                "<˙˙˙˙˙˙˙˙˙The-Official-Bot-of-PissRocket.˙˙˙˙˙˙˙˙>\n"
-                                "<˙˙˙˙˙˙˙˙The-currently-version-is-{}-!˙˙˙˙˙˙˙˙>\n"
-                                "<                                                >\n"
-                                "<▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒>\n"
-                                "<                                                >\n"
-                                "<▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒>\n"
-                                "\n"
-                                "         for the commands, type: \"r-list\"```".format(version), colour=0x3498db)
-        await bot.send_message(message.channel, embed=em)
     await bot.process_commands(message) #IMPORTANT
 
 
